@@ -22,14 +22,14 @@ def main():
     get_datetime(df, date_column, date_format)
     df_dates = filter_by_date(df, date_column, year_input[0], year_input[1], month_input[0], month_input[1])
     filtered_df = filter_by_mode(df_dates, date_column, mode_input)
-    print(f"\n\n\n{filtered_df.to_string(index=False)}\n\n")
+    print(f"\n{filtered_df.to_string(index=False)}\n")
     print(f"{get_max_value(df, first_year, last_year)}")
     month_input = get_month_input(one)
     min_temp_avgs = get_min_temp_averages(middle_year, last_year, month_input, df)
     for k, v in min_temp_avgs[0].items():
         print(f"{k} : {v}")
-    print(f"\n\nEssa foi...:{min_temp_avgs[1]}")
-    plot_bar_graph(min_temp_avgs[0])
+    print(f"\nEssa foi a media de temperatura minima no mes: {min_temp_avgs[1]}°C")
+    plot_bar_graph(min_temp_avgs[0], month_input, middle_year, last_year)
     
 def read_csv(file):
     return pd.read_csv(file)
@@ -42,7 +42,9 @@ def get_month_input(both):
     try:
         if both == True:
             first_input = int(input("Insira o mes de inicio: "))
+            print("")
             last_input = int(input("Insira o mes de termino: "))
+            print("")
             if first_input >= 1 and first_input <= 12 and last_input >= 1 and last_input <= 12:
                 return [first_input, last_input]
             else:
@@ -50,6 +52,7 @@ def get_month_input(both):
                 return get_month_input(both)
         else:
             first_input = int(input("Insira o mes: "))
+            print("")
             if first_input >= 1 and first_input <= 12:
                 return first_input
             else:
@@ -71,7 +74,9 @@ def get_mode_input():
 def get_year_input(first_year, last_year):
     try:
         first_input = int(input("Insira o ano de inicio: "))
+        print("")
         last_input = int(input("Insira o ano de termino: "))
+        print("")
         if first_input >= first_year and first_input <= last_year and last_input >= first_year and last_input <= last_year:
             return [first_input, last_input]
         else:
@@ -115,7 +120,7 @@ def get_max_value(df, first_year, last_year):
     
     max_value = max(precip_dict, key=precip_dict.get)
            
-    return f" O mes/ano mais chuvoso foi: {max_value} com media de {str(precip_dict[max_value])} mm\n\n"
+    return f" O mes/ano mais chuvoso foi: {max_value} com media de {str(precip_dict[max_value])} mm\n"
 
 def get_min_temp_averages(first_year, last_year, month, df):
     month_dict = {}
@@ -129,15 +134,17 @@ def get_min_temp_averages(first_year, last_year, month, df):
         
     return month_dict, statistics.mean(list(month_dict.values()))
 
-def plot_bar_graph(some_dict):
+def plot_bar_graph(some_dict, month, first_year, last_year):
     array_items = np.array(list(some_dict.keys()))
     array_years = np.array(list(some_dict.values()))
     x = array_items
     y = array_years
     plt.bar(x, y, width = 0.6, color = "black")
-    plt.xticks(fontsize = 5)
+    plt.xticks(fontsize = 7)
+    plt.xlabel(f"Mes {month} no intervalo {first_year} - {last_year}")
+    plt.ylabel("Temperatura minima (°C)")
+    plt.title("Temperatura minima do municipio por mes/ano")
     plt.show()
     
     
-
 main()
