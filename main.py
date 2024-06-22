@@ -22,70 +22,41 @@ def main():
                        date_format="%d/%m/%Y", first_year=1961, 
                        middle_year=2006, last_year=2016)
     
-    print("---- Bem vindo ----\n\n\n")
-    df = pd.read_csv(data.csv_file)
-    df[data.date_column] = pd.to_datetime(df[data.date_column], format=data.date_format)
-    month_input = get_month_input(both=True)
-    year_input = get_year_input(data.first_year, data.last_year)
-    print("Deseja ver: 1) todos os dados, 2) apenas os de precipitação, 3) apenas os de temperatura, ou 4) apenas os de umidade e vento?\n")
-    mode_input = get_mode_input()
-    df_dates = filter_by_date(df, data.date_column, year_input[0], year_input[1], month_input[0], month_input[1])
-    filtered_df = filter_by_mode(df_dates, data.date_column, mode_input)
-    print(f"\n{filtered_df.to_string(index=False)}\n")
-    print(f"{get_most_rainy(df, data.date_column, data.precip_column, data.first_year, data.last_year)}")
-    month_input = get_month_input(both=False)
-    min_temp_avgs = get_min_temp_averages(df, data.date_column, data.min_temp_column, month_input, data.middle_year, data.last_year)
-    for k, v in min_temp_avgs[0].items():
-        print(f"{k} : {v}")
-    print(f"\nEssa foi a media de temperatura minima no mes: {min_temp_avgs[1]}°C")
-    plot_bar_graph(min_temp_avgs[0], month_input, data.middle_year, data.last_year)
+    generate_report(data.csv_file, data.city, data.date_column,
+                    data.min_temp_column, data.precip_column, 
+                    data.date_format,data.first_year, 
+                    data.middle_year, data.last_year)
 
-def get_month_input(both):
+def get_month_year_input(year, first_year, last_year):
     try:
-        if both == True:
-            first_input = int(input("Insira o mes de inicio: "))
-            print("")
-            last_input = int(input("Insira o mes de termino: "))
-            print("")
-            if first_input >= 1 and first_input <= 12 and last_input >= 1 and last_input <= 12:
-                return [first_input, last_input]
+        if year == True:
+            month_input = int(input("Mes: "))
+            year_input = int(input("Ano: "))
+            if month_input >= 1 and month_input <= 12 and year_input >= first_year and year_input <= last_year and year_input >= first_year and year_input <= last_year:
+                return [month_input, year_input]
             else:
-                print("Invalid input. Please enter a valid month.")
-                return get_month_input(both)
-        elif both == False:
-            first_input = int(input("Insira o mes: "))
-            print("")
-            if first_input >= 1 and first_input <= 12:
-                return first_input
+                print("Dados invalidos. Por favor, reinsira os dados.")
+                return get_month_year_input(year, first_year, last_year)
+        elif year == False:
+            month_input = int(input("Mes: "))
+            if month_input >= 1 and month_input <= 12:
+                return month_input
             else:
-                print("Invalid input. Please enter a valid month.")
-                return get_month_input(both)
+                print("Dado invalido. Por favor, reinsira o dado.")
+                return get_month_year_input(year, first_year, last_year)
     except:
-        print("Invalid input. Please enter a valid month.")
-
-def get_year_input(first_year, last_year):
-    try:
-        first_input = int(input("Insira o ano de inicio: "))
-        print("")
-        last_input = int(input("Insira o ano de termino: "))
-        print("")
-        if first_input >= first_year and first_input <= last_year and last_input >= first_year and last_input <= last_year:
-            return [first_input, last_input]
-        else:
-            print("Invalid input. Please enter a valid year.")
-            return get_year_input(first_year, last_year)
-    except:
-        print("Invalid input. Please enter a valid year.")
+        print("Dado invalido. Por favor, reinsira o dado.")
+        return get_month_year_input(year, first_year, last_year)
 
 def get_mode_input():
     try:
-        mode = int(input("Insira o modo: "))
+        mode = int(input("Modo: "))
         if mode >= 1 and mode <= 4:
             return mode
         else:
             return get_mode_input()
     except:
-        print("Invalid input. Please enter a valid mode.")
+        print("Dado invalido. Por favor, reinsira o dado.")
         return get_mode_input()
     
 def filter_by_date(df, date_column, first_year, last_year, first_month, last_month):
@@ -123,7 +94,7 @@ def get_most_rainy(df, date_column, precip_column, first_year, last_year):
     
     max_value = max(precip_dict, key=precip_dict.get)
            
-    return f" O mes/ano mais chuvoso foi: {max_value} com media de {str(precip_dict[max_value])} mm\n"
+    return max_value, precip_dict[max_value]
 
 def get_min_temp_averages(df, date_column, min_temp_column, month, middle_year, last_year):
     month_dict = {}
@@ -148,5 +119,40 @@ def plot_bar_graph(month_dict, month, middle_year, last_year):
     plt.ylabel("Temperatura minima (°C)")
     plt.title("Temperatura minima do municipio por mes/ano")
     plt.show()
+
+def generate_report(csv_file, city, date_column, min_temp_column, precip_column, date_format, first_year, middle_year, last_year):
+    print("---- Bem vindo ----\n\n")
+    print(f"Este programa contem os dados metereologicos do municipio de {city} no intervalo {first_year} - {last_year}.")
+    print("Escolha um intervalo no formato MM/AAAA para visualizar os dados\n")
+    df = pd.read_csv(csv_file)
+    df[date_column] = pd.to_datetime(df[date_column], format=date_format)
+    print("Por favor, insira os dados do intervalo: \n")
+    print("Inicio:")
+    both = True
+    first_input = get_month_year_input(both, first_year, last_year)
+    print("Final:")
+    second_input = get_month_year_input(both, first_year, last_year)
+    print("")
+    print("Modos de visualizacao: 1) todos os dados, 2) apenas os de precipitação, 3) apenas os de temperatura, ou 4) apenas os de umidade e vento?\n")
+    print("Por favor insira o modo de visualizacao desejado:\n")
+    mode_input = get_mode_input()
+    print("")
+    print("Tabela:\n")
+    df_dates = filter_by_date(df, date_column, first_input[1], second_input[1], first_input[0], second_input[0])
+    filtered_df = filter_by_mode(df_dates, date_column, mode_input)
+    most_rainy = get_most_rainy(df, date_column, precip_column, first_year, last_year)
+    print(f"{filtered_df.to_string(index=False)}\n")
+    print(f"O mes/ano mais chuvoso foi: {most_rainy[0]} com media de {most_rainy[1]} mm\n")
+    print(f"Escolha um mes para visualizar a media de temperatura minima por ano, no intervalo {middle_year} - {last_year}\n")
+    print("Por favor, insira o mes:\n")
+    both = False
+    third_input = get_month_year_input(both, first_year, last_year)
+    print("\nTabela:\n")
+    min_temp_avgs = get_min_temp_averages(df, date_column, min_temp_column, third_input, middle_year, last_year)
+    for k, v in min_temp_avgs[0].items():
+        print(f"{k} : {v}")
+    print(f"\nEssa foi a media de temperatura minima no mes: {min_temp_avgs[1]}°C\n")
+    print("Grafico:\n")
+    plot_bar_graph(min_temp_avgs[0], third_input, middle_year, last_year)
     
 main()
